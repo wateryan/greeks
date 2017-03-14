@@ -2,6 +2,3 @@
 name = "greeks"
 version = "0.1.0"
 authors = ["Ryan <wateryan280@gmail.com>"]
-
-[dependencies]
-num = "0.1.37"
