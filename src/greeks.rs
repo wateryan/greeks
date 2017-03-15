@@ -35,6 +35,37 @@ pub fn gamma_d1(s0: f64, t: f64, q: f64, sigma: f64, d1: f64) -> f64 {
     return arg1 * arg2 * arg3;
 }
 
+pub fn theta_call(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64, days_per_year: f64) -> f64 {
+    let d1 = d1(s0, x, t, r, q, sigma);
+    let arg1 = theta_arg_1(s0, t, q, sigma, d1);
+    let d2 = d2_d1(t, sigma, d1);
+    let arg2 = theta_arg_2(x, t, r, q, sigma, d2);
+    let arg3 = theta_arg_3(s0, t, q, d1);
+    return (1.0 / days_per_year) * (arg1 - arg2 + arg3);
+}
+
+pub fn theta_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64, days_per_year: f64) -> f64 {
+    let d1 = d1(s0, x, t, r, q, sigma);
+    let arg1 = theta_arg_1(s0, t, q, sigma, d1);
+    let d2 = d2_d1(t, sigma, d1);
+    let arg2 = theta_arg_2(x, t, r, q, sigma, -d2); // d2 is negative for a put
+    let arg3 = theta_arg_3(s0, t, q, -d1); // d1 is negative for a put
+    return (1.0 / days_per_year) * (arg1 + arg2 - arg3);
+}
+
+fn theta_arg_1(s0: f64, t: f64, q: f64, sigma: f64, d1: f64) -> f64 {
+    return -(((s0 * sigma * E.powf(-q * t)) / (2.0 * t.sqrt())) * one_over_sqrt_pi() *
+             E.powf((-d1.powf(2.0)) / 2.0));
+}
+
+fn theta_arg_2(x: f64, t: f64, r: f64, q: f64, sigma: f64, d2: f64) -> f64 {
+    return r * x * E.powf(-r * t) * cnd(d2);
+}
+
+fn theta_arg_3(s0: f64, t: f64, q: f64, d1: f64) -> f64 {
+    return q * s0 * E.powf(-q * t) * cnd(d1);
+}
+
 pub fn vega(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     return vega_d1(s0, t, q, d1);
@@ -45,6 +76,16 @@ pub fn vega_d1(s0: f64, t: f64, q: f64, d1: f64) -> f64 {
     let mult2 = one_over_sqrt_pi();
     let mult3 = E.powf((-d1.powf(2.0) / 2.0));
     return mult1 * mult2 * mult3;
+}
+
+pub fn rho_call(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
+    let d2_cnd = cnd(d2(s0, x, t, r, q, sigma));
+    return (1.0 / 100.0) * x * t * E.powf(-r * t) * d2_cnd;
+}
+
+pub fn rho_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
+    let neg_d2_cnd = cnd(-d2(s0, x, t, r, q, sigma));
+    return -(1.0 / 100.0) * x * t * E.powf(-r * t) * neg_d2_cnd;
 }
 
 fn one_over_sqrt_pi() -> f64 {
@@ -63,6 +104,10 @@ pub fn d2(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     return d1 - (t.sqrt() * sigma);
 }
 
+pub fn d2_d1(t: f64, sigma: f64, d1: f64) -> f64 {
+    return d1 - (t.sqrt() * sigma);
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -73,14 +118,19 @@ mod tests {
     const VOL: f64 = 0.5051;
     const INTEREST_RATE: f64 = 0.0150;
     const DIV_YIELD: f64 = 0.0210;
-    const TIME_TO_EXPIRY: f64 = 23.0 / 365.0;
+    const DAYS_PER_YEAR: f64 = 365.0;
+    const TIME_TO_EXPIRY: f64 = 23.0 / DAYS_PER_YEAR;
 
     const E_D1: f64 = 0.0214;
     const E_D2: f64 = -0.1053;
     const E_CALL_DELTA: f64 = 0.5079;
     const E_PUT_DELTA: f64 = -0.4908;
     const E_GAMMA: f64 = 0.0243;
+    const E_THETA_CALL: f64 = -0.0703;
+    const E_THETA_PUT: f64 = -0.0714;
     const E_VEGA: f64 = 0.0647;
+    const E_RHO_CALL: f64 = 0.0187;
+    const E_RHO_PUT: f64 = -0.0222;
 
     #[test]
     fn test_d1() {
@@ -144,6 +194,33 @@ mod tests {
     }
 
     #[test]
+    fn test_theta_call() {
+        let theta_call = theta_call(UNDERLYING,
+                                    STRIKE,
+                                    TIME_TO_EXPIRY,
+                                    INTEREST_RATE,
+                                    DIV_YIELD,
+                                    VOL,
+                                    DAYS_PER_YEAR);
+        let abs = (theta_call - E_THETA_CALL).abs();
+        assert!(abs < 0.001);
+    }
+
+    #[test]
+    fn test_theta_put() {
+        let theta_put = theta_put(UNDERLYING,
+                                  STRIKE,
+                                  TIME_TO_EXPIRY,
+                                  INTEREST_RATE,
+                                  DIV_YIELD,
+                                  VOL,
+                                  DAYS_PER_YEAR);
+        println!("{}", theta_put);
+        let abs = (theta_put - E_THETA_PUT).abs();
+        assert!(abs < 0.001);
+    }
+
+    #[test]
     fn test_vega() {
         let vega = vega(UNDERLYING,
                         STRIKE,
@@ -154,4 +231,29 @@ mod tests {
         let abs = (vega - E_VEGA).abs();
         assert!(abs < 0.001);
     }
+
+    #[test]
+    fn test_rho_call() {
+        let rho_call = rho_call(UNDERLYING,
+                                STRIKE,
+                                TIME_TO_EXPIRY,
+                                INTEREST_RATE,
+                                DIV_YIELD,
+                                VOL);
+        let abs = (rho_call - E_RHO_CALL).abs();
+        assert!(abs < 0.001);
+    }
+
+    #[test]
+    fn test_rho_put() {
+        let rho_put = rho_put(UNDERLYING,
+                              STRIKE,
+                              TIME_TO_EXPIRY,
+                              INTEREST_RATE,
+                              DIV_YIELD,
+                              VOL);
+        let abs = (rho_put - E_RHO_PUT).abs();
+        assert!(abs < 0.001);
+    }
+
 }
