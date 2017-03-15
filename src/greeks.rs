@@ -54,11 +54,11 @@ mod tests {
     const DIV_YIELD: f64 = 0.0210;
     const TIME_TO_EXPIRY: f64 = 23.0 / 365.0;
 
-    const E_D1: f64 = -0.1053;
-    const E_D2: f64 = 0.02149;
+    const E_D1: f64 = 0.0214;
+    const E_D2: f64 = -0.1053;
     const E_CALL_DELTA: f64 = 0.5079;
     const E_PUT_DELTA: f64 = -0.4908;
-    const E_GAMMA: f64 = 0.0486;
+    const E_GAMMA: f64 = 0.0243;
 
     #[test]
     fn test_d1() {
@@ -118,7 +118,6 @@ mod tests {
                           DIV_YIELD,
                           VOL);
         let abs = (gamma - E_GAMMA).abs();
-        println!("{}", gamma);
         assert!(abs < 0.001);
     }
 }
