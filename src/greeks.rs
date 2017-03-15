@@ -5,10 +5,14 @@
 /// r - continuously compounded risk-free interest rate (%)
 /// q - continously compounded dividend yield (%)
 /// t - time to expiration (% of year)
+/// days_per_year - number of days per year (generally 365)
 use std::f64::consts::E;
 use std::f64::consts::PI;
 use stats::cnd;
 
+/// Calculates the delta of a call option.
+///
+/// Delta measures the rate of the theoretical option value with respect to the changes in the underlying asset's price.
 pub fn delta_call(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     let cnd = cnd(d1);
@@ -16,6 +20,9 @@ pub fn delta_call(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     return e * cnd;
 }
 
+/// Calculates the delta of a put options
+///
+/// Delta measures the rate of the theoretical option value with respect to the changes in the underlying asset's price.
 pub fn delta_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     let cnd = cnd(d1);
@@ -23,6 +30,9 @@ pub fn delta_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     return e * (cnd - 1.0);
 }
 
+/// Calculates the Gamma for an option
+///
+/// Gamma measures the rate of change in the delta with respect to the change in the underlying price.
 pub fn gamma(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     return gamma_d1(s0, t, q, sigma, d1);
@@ -35,20 +45,26 @@ pub fn gamma_d1(s0: f64, t: f64, q: f64, sigma: f64, d1: f64) -> f64 {
     return arg1 * arg2 * arg3;
 }
 
+/// Calculates the Theta of a call option
+///
+/// Theta measures the sensitivity of the value of the derivative to the passage of time.
 pub fn theta_call(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64, days_per_year: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     let arg1 = theta_arg_1(s0, t, q, sigma, d1);
     let d2 = d2_d1(t, sigma, d1);
-    let arg2 = theta_arg_2(x, t, r, q, sigma, d2);
+    let arg2 = theta_arg_2(x, t, r, d2);
     let arg3 = theta_arg_3(s0, t, q, d1);
     return (1.0 / days_per_year) * (arg1 - arg2 + arg3);
 }
 
+/// Calculates the Theta of a put option
+///
+/// Theta measures the sensitivity of the value of the derivative to the passage of time.
 pub fn theta_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64, days_per_year: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     let arg1 = theta_arg_1(s0, t, q, sigma, d1);
     let d2 = d2_d1(t, sigma, d1);
-    let arg2 = theta_arg_2(x, t, r, q, sigma, -d2); // d2 is negative for a put
+    let arg2 = theta_arg_2(x, t, r, -d2); // d2 is negative for a put
     let arg3 = theta_arg_3(s0, t, q, -d1); // d1 is negative for a put
     return (1.0 / days_per_year) * (arg1 + arg2 - arg3);
 }
@@ -58,7 +74,7 @@ fn theta_arg_1(s0: f64, t: f64, q: f64, sigma: f64, d1: f64) -> f64 {
              E.powf((-d1.powf(2.0)) / 2.0));
 }
 
-fn theta_arg_2(x: f64, t: f64, r: f64, q: f64, sigma: f64, d2: f64) -> f64 {
+fn theta_arg_2(x: f64, t: f64, r: f64, d2: f64) -> f64 {
     return r * x * E.powf(-r * t) * cnd(d2);
 }
 
@@ -66,6 +82,9 @@ fn theta_arg_3(s0: f64, t: f64, q: f64, d1: f64) -> f64 {
     return q * s0 * E.powf(-q * t) * cnd(d1);
 }
 
+/// Calculates the Vega of a given option
+///
+/// Vega measures the sensitivity to volatility. Vega is the derivative of the option value with respect to the volatility of the underlying asset.
 pub fn vega(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     return vega_d1(s0, t, q, d1);
@@ -78,11 +97,17 @@ pub fn vega_d1(s0: f64, t: f64, q: f64, d1: f64) -> f64 {
     return mult1 * mult2 * mult3;
 }
 
+/// Calculates the Rho of a call option
+///
+/// Rho measures the sensitivity to the interest rate. Rho is the derivative of the option value with respect to the risk free interest rate.
 pub fn rho_call(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d2_cnd = cnd(d2(s0, x, t, r, q, sigma));
     return (1.0 / 100.0) * x * t * E.powf(-r * t) * d2_cnd;
 }
 
+/// Calculates the Rho of a put option
+///
+/// Rho measures the sensitivity to the interest rate. Rho is the derivative of the option value with respect to the risk free interest rate.
 pub fn rho_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let neg_d2_cnd = cnd(-d2(s0, x, t, r, q, sigma));
     return -(1.0 / 100.0) * x * t * E.powf(-r * t) * neg_d2_cnd;
