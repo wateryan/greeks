@@ -25,10 +25,30 @@ pub fn delta_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
 
 pub fn gamma(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
+    return gamma_d1(s0, t, q, sigma, d1);
+}
+
+pub fn gamma_d1(s0: f64, t: f64, q: f64, sigma: f64, d1: f64) -> f64 {
     let arg1 = E.powf(-(q * t)) / (s0 * sigma * (t.sqrt()));
-    let arg2 = 1.0 / ((2.0 * PI).sqrt());
+    let arg2 = one_over_sqrt_pi();
     let arg3 = E.powf((-d1).powf(2.0)) / 2.0;
     return arg1 * arg2 * arg3;
+}
+
+pub fn vega(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
+    let d1 = d1(s0, x, t, r, q, sigma);
+    return vega_d1(s0, t, q, d1);
+}
+
+pub fn vega_d1(s0: f64, t: f64, q: f64, d1: f64) -> f64 {
+    let mult1 = (1.0 / 100.0) * s0 * E.powf(-(q * t)) * t.sqrt();
+    let mult2 = one_over_sqrt_pi();
+    let mult3 = E.powf((-d1.powf(2.0) / 2.0));
+    return mult1 * mult2 * mult3;
+}
+
+fn one_over_sqrt_pi() -> f64 {
+    return 1.0 / (2.0 * PI).sqrt();
 }
 
 pub fn d1(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
@@ -37,6 +57,7 @@ pub fn d1(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     return (ln + t_num) / (sigma * t.sqrt());
 }
 
+// TODO Add overload for providing d1
 pub fn d2(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     return d1 - (t.sqrt() * sigma);
@@ -59,6 +80,7 @@ mod tests {
     const E_CALL_DELTA: f64 = 0.5079;
     const E_PUT_DELTA: f64 = -0.4908;
     const E_GAMMA: f64 = 0.0243;
+    const E_VEGA: f64 = 0.0647;
 
     #[test]
     fn test_d1() {
@@ -118,6 +140,18 @@ mod tests {
                           DIV_YIELD,
                           VOL);
         let abs = (gamma - E_GAMMA).abs();
+        assert!(abs < 0.001);
+    }
+
+    #[test]
+    fn test_vega() {
+        let vega = vega(UNDERLYING,
+                        STRIKE,
+                        TIME_TO_EXPIRY,
+                        INTEREST_RATE,
+                        DIV_YIELD,
+                        VOL);
+        let abs = (vega - E_VEGA).abs();
         assert!(abs < 0.001);
     }
 }
