@@ -1,2 +1,4 @@
-pub mod greeks;
-pub mod stats;
+mod greeks;
+mod stats;
+
+pub use greeks::*;

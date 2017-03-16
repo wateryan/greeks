@@ -1,9 +1,13 @@
 [package]
 name = "greeks"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Ryan <wateryan280@gmail.com>"]
 
 description = "Implementation of library to calculate options greeks"
 repository = "https://github.com/wateryan/greeks"
 license = "MIT"
 readme = "README.md"
+
+[lib]
+name = "greeks"
+path = "src/lib.rs"
