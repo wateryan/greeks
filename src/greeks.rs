@@ -13,6 +13,14 @@ use stats::cnd;
 /// Calculates the delta of a call option.
 ///
 /// Delta measures the rate of the theoretical option value with respect to the changes in the underlying asset's price.
+///
+/// # Arguments
+/// * `s0` - The underlying price of the option
+/// * `x` - The strike price of the option
+/// * `t` - time to expiration as a percentage of the year
+/// * `r` - continuously compounded risk-free interest rate
+/// * `q` - continuously compounded divident yield
+/// * `sigma` - volatility
 pub fn delta_call(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     let cnd = cnd(d1);
@@ -23,6 +31,14 @@ pub fn delta_call(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
 /// Calculates the delta of a put options
 ///
 /// Delta measures the rate of the theoretical option value with respect to the changes in the underlying asset's price.
+///
+/// # Arguments
+/// * `s0` - The underlying price of the option
+/// * `x` - The strike price of the option
+/// * `t` - time to expiration as a percentage of the year
+/// * `r` - continuously compounded risk-free interest rate
+/// * `q` - continuously compounded divident yield
+/// * `sigma` - volatility
 pub fn delta_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     let cnd = cnd(d1);
@@ -33,6 +49,14 @@ pub fn delta_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
 /// Calculates the Gamma for an option
 ///
 /// Gamma measures the rate of change in the delta with respect to the change in the underlying price.
+///
+/// # Arguments
+/// * `s0` - The underlying price of the option
+/// * `x` - The strike price of the option
+/// * `t` - time to expiration as a percentage of the year
+/// * `r` - continuously compounded risk-free interest rate
+/// * `q` - continuously compounded divident yield
+/// * `sigma` - volatility
 pub fn gamma(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     return gamma_d1(s0, t, q, sigma, d1);
@@ -60,6 +84,15 @@ pub fn theta_call(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64, days_per_
 /// Calculates the Theta of a put option
 ///
 /// Theta measures the sensitivity of the value of the derivative to the passage of time.
+///
+/// # Arguments
+/// * `s0` - The underlying price of the option
+/// * `x` - The strike price of the option
+/// * `t` - time to expiration as a percentage of the year
+/// * `r` - continuously compounded risk-free interest rate
+/// * `q` - continuously compounded divident yield
+/// * `sigma` - volatility
+/// * `days_per_year` - the number of calendar days in the year
 pub fn theta_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64, days_per_year: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     let arg1 = theta_arg_1(s0, t, q, sigma, d1);
@@ -85,6 +118,14 @@ fn theta_arg_3(s0: f64, t: f64, q: f64, d1: f64) -> f64 {
 /// Calculates the Vega of a given option
 ///
 /// Vega measures the sensitivity to volatility. Vega is the derivative of the option value with respect to the volatility of the underlying asset.
+///
+/// # Arguments
+/// * `s0` - The underlying price of the option
+/// * `x` - The strike price of the option
+/// * `t` - time to expiration as a percentage of the year
+/// * `r` - continuously compounded risk-free interest rate
+/// * `q` - continuously compounded divident yield
+/// * `sigma` - volatility
 pub fn vega(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d1 = d1(s0, x, t, r, q, sigma);
     return vega_d1(s0, t, q, d1);
@@ -100,6 +141,14 @@ pub fn vega_d1(s0: f64, t: f64, q: f64, d1: f64) -> f64 {
 /// Calculates the Rho of a call option
 ///
 /// Rho measures the sensitivity to the interest rate. Rho is the derivative of the option value with respect to the risk free interest rate.
+///
+/// # Arguments
+/// * `s0` - The underlying price of the option
+/// * `x` - The strike price of the option
+/// * `t` - time to expiration as a percentage of the year
+/// * `r` - continuously compounded risk-free interest rate
+/// * `q` - continuously compounded divident yield
+/// * `sigma` - volatility
 pub fn rho_call(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let d2_cnd = cnd(d2(s0, x, t, r, q, sigma));
     return (1.0 / 100.0) * x * t * E.powf(-r * t) * d2_cnd;
@@ -108,6 +157,14 @@ pub fn rho_call(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
 /// Calculates the Rho of a put option
 ///
 /// Rho measures the sensitivity to the interest rate. Rho is the derivative of the option value with respect to the risk free interest rate.
+///
+/// # Arguments
+/// * `s0` - The underlying price of the option
+/// * `x` - The strike price of the option
+/// * `t` - time to expiration as a percentage of the year
+/// * `r` - continuously compounded risk-free interest rate
+/// * `q` - continuously compounded divident yield
+/// * `sigma` - volatility
 pub fn rho_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     let neg_d2_cnd = cnd(-d2(s0, x, t, r, q, sigma));
     return -(1.0 / 100.0) * x * t * E.powf(-r * t) * neg_d2_cnd;
