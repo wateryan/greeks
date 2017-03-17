@@ -11,3 +11,16 @@ Goals:
 * Be fast
 * Be accurrate
 * Not have any external dependencies.
+
+## Supported Calculations
+
+### First Order
+
+* Delta
+* Rho
+* Theta
+* Vega
+
+### Second Order
+
+* Gamma
