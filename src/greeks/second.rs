@@ -1,6 +1,7 @@
 // Module containing functions for calculating second order greeks
 use std::f64::consts::E;
-use greeks::common::*;
+
+use common::*;
 
 /// Calculates the Gamma for an option
 ///

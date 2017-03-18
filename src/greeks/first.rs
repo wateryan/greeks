@@ -1,10 +1,7 @@
 // Module containing functions for calculating first-order greeks
 use std::f64::consts::E;
 
-use greeks::common::d1;
-use greeks::common::d2;
-use greeks::common::d2_d1;
-use greeks::common::one_over_sqrt_pi;
+use common::*;
 use stats::cnd;
 
 /// Calculates the delta of a call option.

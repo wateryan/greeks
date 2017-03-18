@@ -22,7 +22,7 @@ pub fn one_over_sqrt_pi() -> f64 {
 #[cfg(test)]
 mod tests {
 
-    use greeks::common::*;
+    use common::*;
 
     const UNDERLYING: f64 = 64.68;
     const STRIKE: f64 = 65.00;
