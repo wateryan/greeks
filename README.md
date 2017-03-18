@@ -31,3 +31,8 @@ Goals:
 
 * European call option
 * European put option
+
+### Valution
+
+* Call option at expiry
+* Put option at expiry
