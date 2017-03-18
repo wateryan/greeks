@@ -4,7 +4,7 @@
 [![Crates.io Status](https://img.shields.io/crates/v/greeks.svg)](https://crates.io/crates/greeks)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-This project is a simple implementation of options greeks for Rust.
+This project is a simple implementation of options pricing and greeks for Rust.
 
 Goals:
 
@@ -14,13 +14,20 @@ Goals:
 
 ## Supported Calculations
 
-### First Order
+### Greeks
+
+#### First Order
 
 * Delta
 * Rho
 * Theta
 * Vega
 
-### Second Order
+#### Second Order
 
 * Gamma
+
+### Pricing
+
+* European call option
+* European put option
