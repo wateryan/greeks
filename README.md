@@ -19,6 +19,7 @@ Goals:
 #### First Order
 
 * Delta
+* Lambda
 * Rho
 * Theta
 * Vega
