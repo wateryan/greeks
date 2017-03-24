@@ -1,6 +1,6 @@
 [package]
 name = "greeks"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Ryan <wateryan280@gmail.com>"]
 
 description = "Implementation of library to calculate options greeks"

@@ -40,6 +40,44 @@ pub fn delta_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64) -> f64 {
     return e * (cnd - 1.0);
 }
 
+/// Calculates the lambda of a call option, also known as Omega
+///
+/// Omega is the percentage of change in an option's value with respect to the percentage change in the underlying price.
+///
+/// # Arguments
+/// * `s0` - The underlying price of the option
+/// * `x` - The strike price of the option
+/// * `t` - time to expiration as a percentage of the year
+/// * `r` - continuously compounded risk-free interest rate
+/// * `q` - continuously compounded divident yield
+/// * `sigma` - volatility
+/// * `v` - value or current price of the option
+pub fn lambda_call(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64, v: f64) -> f64 {
+    let delta = delta_call(s0, x, t, r, q, sigma);
+    return lambda(s0, v, delta);
+}
+
+/// Calculates the lambda of a put option, also known as Omega
+///
+/// Omega is the percentage of change in an option's value with respect to the percentage change in the underlying price.
+///
+/// # Arguments
+/// * `s0` - The underlying price of the option
+/// * `x` - The strike price of the option
+/// * `t` - time to expiration as a percentage of the year
+/// * `r` - continuously compounded risk-free interest rate
+/// * `q` - continuously compounded divident yield
+/// * `sigma` - volatility
+/// * `v` - value or current price of the option
+pub fn lambda_put(s0: f64, x: f64, t: f64, r: f64, q: f64, sigma: f64, v: f64) -> f64 {
+    let delta = delta_put(s0, x, t, r, q, sigma);
+    return lambda(s0, v, delta);
+}
+
+fn lambda(s0: f64, v: f64, delta: f64) -> f64 {
+    return delta * s0 / v;
+}
+
 /// Calculates the Rho of a call option
 ///
 /// Rho measures the sensitivity to the interest rate. Rho is the derivative of the option value with respect to the risk free interest rate.
@@ -145,6 +183,7 @@ pub fn vega_d1(s0: f64, t: f64, q: f64, d1: f64) -> f64 {
 mod tests {
 
     use greeks::*;
+    use value::*;
 
     const UNDERLYING: f64 = 64.68;
     const STRIKE: f64 = 65.00;
@@ -156,6 +195,8 @@ mod tests {
 
     const E_CALL_DELTA: f64 = 0.5079;
     const E_PUT_DELTA: f64 = -0.4908;
+    const E_LAMBDA_PUT: f64 = -3.0759;
+    const E_LAMBDA_CALL: f64 = 3.3936;
     const E_RHO_CALL: f64 = 0.0187;
     const E_RHO_PUT: f64 = -0.0222;
     const E_THETA_CALL: f64 = -0.0703;
@@ -183,6 +224,37 @@ mod tests {
                                   DIV_YIELD,
                                   VOL);
         let abs = (put_delta - E_PUT_DELTA).abs();
+        assert!(abs < 0.001);
+    }
+
+    #[test]
+    fn test_lambda_put() {
+        // Abitrary change in underlying at expiry
+        let price = put_at_expiry(UNDERLYING - 10.0, STRIKE);
+        let lambda = lambda_put(UNDERLYING,
+                                STRIKE,
+                                TIME_TO_EXPIRY,
+                                INTEREST_RATE,
+                                DIV_YIELD,
+                                VOL,
+                                price);
+        println!("{}", lambda);
+        let abs = (lambda - E_LAMBDA_PUT).abs();
+        assert!(abs < 0.001);
+    }
+
+    #[test]
+    fn test_lambda_call() {
+        // abitrary change in underlying at expiry
+        let price = call_at_expiry(UNDERLYING + 10.0, STRIKE);
+        let lambda = lambda_call(UNDERLYING,
+                                 STRIKE,
+                                 TIME_TO_EXPIRY,
+                                 INTEREST_RATE,
+                                 DIV_YIELD,
+                                 VOL,
+                                 price);
+        let abs = (lambda - E_LAMBDA_CALL).abs();
         assert!(abs < 0.001);
     }
 
